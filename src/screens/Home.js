@@ -1,15 +1,27 @@
 import React, {useState} from 'react';
-import { StyleSheet, View, Text, Button, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, Button, TouchableOpacity, Modal, TouchableWithoutFeedback, Keyboard  } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { globalStyles } from '../styles/global';
+import Card from '../components/Card';
+import ReviewForm from './reviewForms';
 
 export default function Home({navigation}) {
+
+  const [modalOpen, setModalOpen] =  useState(false);
 
   const [reviews, setReviews] = useState([
     { title: 'Zelda, Breath of Fresh Air', rating: 5, body: 'lorem ipsum', key: '1' },
     { title: 'Gotta Catch Them All (again)', rating: 4, body: 'lorem ipsum', key: '2' },
     { title: 'Not So "Final" Fantasy', rating: 3, body: 'lorem ipsum', key: '3' },
   ]);
+
+  const addReview = (review) => {
+    review.key = Math.random().toString();
+    setReviews((currentReviews) => {
+      return [review, ...currentReviews];
+    });
+    setModalOpen(false);
+  };
 
   const navigateToReviewPage= (item)=>{
     navigation.push("ReviewDetails", item);
@@ -19,12 +31,28 @@ export default function Home({navigation}) {
 
   return (
     <View style={globalStyles.container}>
+
+      <Modal visible={modalOpen} animationType="slide">
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.modalContext}>
+            <Button title='Back' onPress={()=>{setModalOpen(false)}}/>
+            <ReviewForm addReview={addReview}/>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
+      <View>
+        <Button title='Add Review' onPress={()=>{setModalOpen(true)}}/>
+      </View>
+
       <FlatList 
         keyExtractor={(item)=> (item.key)}
         data={reviews}
         renderItem={({item})=> (
           <TouchableOpacity onPress={()=>{navigateToReviewPage(item)}}>
-            <Text style={globalStyles.titleText}>{item.title}</Text>
+            <Card>
+              <Text style={globalStyles.titleText}>{item.title}</Text>
+            </Card>
           </TouchableOpacity>
         )}
       />
@@ -35,5 +63,11 @@ export default function Home({navigation}) {
 const styles = StyleSheet.create({
   container: {
     padding : 10
+  },
+  modalContext: {
+    flex: 1,
+    flexDirection:"column",
+    padding: 10,
+    // alignItems: "center"
   }
 });
